@@ -8,10 +8,10 @@ int ip_destination(const u_char *p, int a, int b);
 int ip_source(const u_char *p, int a, int b);
 void ethernet_destination(const u_char *p, int a, int b);
 void ethernet_source(const u_char *p, int a, int b);
-uint16_t tcp_source(const u_char *p);
-uint16_t tcp_destination(const u_char *p);
-uint16_t udp_source(const u_char *p);
-uint16_t udp_destination(const u_char *p);
+uint8_t tcp_source(const u_char *p);
+uint8_t tcp_destination(const u_char *p);
+uint8_t udp_source(const u_char *p);
+uint8_t udp_destination(const u_char *p);
 
 int main()
 
@@ -105,7 +105,7 @@ void got_packet(u_char *args, const struct pcap_pkthdr *header, const u_char *p)
             uint8_t tcp_source_port =0, tcp_destination_port = 0;
             tcp_source_port = (uint8_t)tcp_source(p);
             tcp_destination_port = (uint8_t)tcp_destination(p);
-
+            //destination so big????....
             printf("tcp source port(hex) : %x\ntcp destination(hex) : %x\n",tcp_source(p),tcp_destination(p));
             printf("tcp source port : %d\ntcp destination port : %d\n", tcp_source_port,tcp_destination_port);
         }
@@ -171,7 +171,7 @@ int ip_source(const u_char *p, int a, int b)
     return 1;
 }
 
-uint16_t tcp_destination(const u_char *p)
+uint8_t tcp_destination(const u_char *p)
 {   uint8_t buffer[2] = {p[36], p[37]};
     uint16_t s = NULL;
 
@@ -180,7 +180,7 @@ uint16_t tcp_destination(const u_char *p)
 
 
 }
-uint16_t tcp_source(const u_char *p)
+uint8_t tcp_source(const u_char *p)
 {
     uint8_t buffer[2]= {p[34], p[35]};
     uint16_t s = NULL;
@@ -188,14 +188,14 @@ uint16_t tcp_source(const u_char *p)
     return s;
 }
 
-uint16_t udp_destination(const u_char *p)
+uint8_t udp_destination(const u_char *p)
 {
     uint8_t buffer[2]= {p[36], p[37]};
     uint16_t s = NULL;
         s = buffer[0] << 8 | buffer[1];
     return s;
                     }
-uint16_t udp_source(const u_char *p)
+uint8_t udp_source(const u_char *p)
 {
     uint8_t buffer[2]= {p[34], p[35]};
     uint16_t s = NULL;
