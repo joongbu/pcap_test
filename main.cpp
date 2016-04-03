@@ -1,28 +1,30 @@
+
 #include <pcap.h>
-#include <stdint.h>
+#include<stdint.h>
+#include <arpa/inet.h>
 #include <stdio.h>
 
 
 void got_packet(u_char *args, const struct pcap_pkthdr *header, const u_char *packet);
 int ip_destination(const u_char *p, int a, int b);
 int ip_source(const u_char *p, int a, int b);
-void ethernet_destination(const u_char *p, int a, int b);
-void ethernet_source(const u_char *p, int a, int b);
-uint8_t tcp_source(const u_char *p);
-uint8_t tcp_destination(const u_char *p);
-uint8_t udp_source(const u_char *p);
-uint8_t udp_destination(const u_char *p);
+void ethernet(const u_char *p, int a, int b);
+int tcp_source(const u_char *p);
+int tcp_destination(const u_char *p);
+int udp_source(const u_char *p);
+int udp_destination(const u_char *p);
 
 int main()
 
 {
+
+
 
     pcap_t *handle;            /* Session handle */
 
     char *dev;            /* The device to sniff on */
 
     char errbuf[PCAP_ERRBUF_SIZE];    /* Error string */
-
     struct bpf_program fp;        /* The compiled filter */
 
     char filter_exp[] = "port 23";    /* The filter expression */
@@ -94,57 +96,48 @@ int main()
 
 void got_packet(u_char *args, const struct pcap_pkthdr *header, const u_char *p) {
 
-    ethernet_destination(p,0,5);
-    ethernet_source(p,6,11);
+    ethernet(p,0,11);
     if((int)p[12] == 8 && (int)p[13] == 0)
     {
         ip_source(p,26,29);
         ip_destination(p,30,33);
-        if((int) p[23] == 6);
+        if((int)p[23] == 6)
         {
-            uint8_t tcp_source_port =0, tcp_destination_port = 0;
-            tcp_source_port = (uint8_t)tcp_source(p);
-            tcp_destination_port = (uint8_t)tcp_destination(p);
-            //destination so big????....
-            printf("tcp source port(hex) : %x\ntcp destination(hex) : %x\n",tcp_source(p),tcp_destination(p));
-            printf("tcp source port : %d\ntcp destination port : %d\n", tcp_source_port,tcp_destination_port);
+
+           tcp_source(p);
+           tcp_destination(p);
         }
-      if((int)p[23] == 11)
+       if((int)p[23] == 17)
        {
 
            udp_source(p);
            udp_destination(p);
-
 
        }
     }
 
 
 }
-void ethernet_destination(const u_char *p, int a, int b)
+void ethernet(const u_char *p, int a, int b)
 {
     printf("ethernet destination :");
-
-    for(a ; a<=b; a++)
+    for(a ; a<=b/2; a++)
     {
         printf("%02x",p[a]);
-        if(a<b)
-            printf(":");
+        if(a<b/2)
+        printf(":");
     }
     printf("\n");
-}
-void ethernet_source(const u_char *p, int a, int b)
-{
     printf("ethernet source :");
-
-    for(a ; a<=b; a++)
+    for(a=b/2;a <=b;a++)
     {
         printf("%02x",p[a]);
         if(a<b)
-            printf(":");
+        printf(":");
     }
     printf("\n");
 }
+
 int ip_destination(const u_char *p, int a, int b)
 {
     printf("ip destination : ");
@@ -155,7 +148,7 @@ int ip_destination(const u_char *p, int a, int b)
             printf(".");
     }
     printf("\n");
-    return 1;
+    return 0;
 }
 
 int ip_source(const u_char *p, int a, int b)
@@ -168,37 +161,49 @@ int ip_source(const u_char *p, int a, int b)
             printf(".");
     }
     printf("\n");
-    return 1;
+    return 0;
 }
 
-uint8_t tcp_destination(const u_char *p)
-{   uint8_t buffer[2] = {p[36], p[37]};
-    uint16_t s = NULL;
-
-        s = buffer[0] << 8 | buffer[1];
-    return s;
+int tcp_destination(const u_char *p)
+{   uint8_t buffer[2] = {p[36],p[37]};
+    uint16_t s;
+    ntohs(buffer[0]);
+    ntohs(buffer[1]);
+    s =buffer[0] + buffer[1];
+    printf("tcp destination ip : %d\n",s);
+    return 0;
 
 
 }
-uint8_t tcp_source(const u_char *p)
+int tcp_source(const u_char *p)
 {
-    uint8_t buffer[2]= {p[34], p[35]};
-    uint16_t s = NULL;
-        s = buffer[0] << 8 | buffer[1];
-    return s;
+    uint8_t buffer[2]= {p[34],p[35]};
+    uint16_t s;
+    ntohs(buffer[0]);
+    ntohs(buffer[1]);
+    s =buffer[0] + buffer[1];
+    printf("tcp source ip : %d\n",s);
+    return 0;
 }
 
-uint8_t udp_destination(const u_char *p)
+int udp_destination(const u_char *p)
 {
-    uint8_t buffer[2]= {p[36], p[37]};
-    uint16_t s = NULL;
-        s = buffer[0] << 8 | buffer[1];
-    return s;
+    uint8_t buffer[2] = {p[36],p[37]};
+    uint16_t s;
+
+    ntohs(buffer[0]);
+    ntohs(buffer[1]);
+    s =buffer[0] + buffer[1];
+    printf("udp destination ip : %d\n",s);
+    return 0;
                     }
-uint8_t udp_source(const u_char *p)
+int udp_source(const u_char *p)
 {
     uint8_t buffer[2]= {p[34], p[35]};
-    uint16_t s = NULL;
-        s = buffer[0] << 8 | buffer[1];
-    return s;
+    uint16_t s;
+    ntohs(buffer[0]);
+    ntohs(buffer[1]);
+    s =buffer[0] + buffer[1];
+    printf("udp source ip : %d\n",s);
+    return 0;
                     }
