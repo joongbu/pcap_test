@@ -1,9 +1,7 @@
-
 #include <pcap.h>
 #include<stdint.h>
 #include <arpa/inet.h>
 #include <stdio.h>
-
 
 void got_packet(u_char *args, const struct pcap_pkthdr *header, const u_char *packet);
 int ip_destination(const u_char *p, int a, int b);
@@ -13,6 +11,7 @@ int tcp_source(const u_char *p);
 int tcp_destination(const u_char *p);
 int udp_source(const u_char *p);
 int udp_destination(const u_char *p);
+
 
 int main()
 
@@ -94,34 +93,39 @@ int main()
 }
 
 
-void got_packet(u_char *args, const struct pcap_pkthdr *header, const u_char *p) {
+void got_packet(u_char *args, const struct pcap_pkthdr *header, const u_char *ethernet_header) {
+    const u_char *ip_header = ethernet_header + 14;
+    const u_char *tcp_header = ip_header + (ip_header[0] & 0x0f) * 4;
+    const u_char *udp_header = ip_header + (ip_header[0] & 0x0f) * 4;
 
-    ethernet(p,0,11);
-    if((int)p[12] == 8 && (int)p[13] == 0)
+    ethernet(ethernet_header,0,11);
+    if((int)ethernet_header[12] == 8 && (int)ethernet_header[13] == 0)
     {
-        ip_source(p,26,29);
-        ip_destination(p,30,33);
-        if((int)p[23] == 6)
+        ip_source(ip_header,12,15);
+        ip_destination(ip_header,16,19);
+        if((int)ethernet_header[23] == 6)
         {
 
-           tcp_source(p);
-           tcp_destination(p);
+           tcp_source(tcp_header);
+           tcp_destination(tcp_header);
         }
-       if((int)p[23] == 17)
+       if((int)ethernet_header[23] == 17)
        {
 
-           udp_source(p);
-           udp_destination(p);
+           udp_source(udp_header);
+           udp_destination(udp_header);
 
        }
+
     }
 
 
 }
 void ethernet(const u_char *p, int a, int b)
 {
+    int i = 0;
     printf("ethernet destination :");
-    for(a ; a<=b/2; a++)
+    for(i = a ; i<=b/2; i = a++)
     {
         printf("%02x",p[a]);
         if(a<b/2)
@@ -129,7 +133,7 @@ void ethernet(const u_char *p, int a, int b)
     }
     printf("\n");
     printf("ethernet source :");
-    for(a=b/2;a <=b;a++)
+    for(i=b/2;i <=b;i = a++)
     {
         printf("%02x",p[a]);
         if(a<b)
@@ -140,8 +144,10 @@ void ethernet(const u_char *p, int a, int b)
 
 int ip_destination(const u_char *p, int a, int b)
 {
+    int i = 0;
+
     printf("ip destination : ");
-    for(a; a<=b; a++)
+    for(i= a; i<=b; i = a++)
     {
         printf("%02d",p[a]);
         if(a<b)
@@ -153,8 +159,9 @@ int ip_destination(const u_char *p, int a, int b)
 
 int ip_source(const u_char *p, int a, int b)
 {
+    int i = 0;
     printf("ip source : ");
-    for(a; a<=b; a++)
+    for(i = a; i<=b; i = a++)
     {
         printf("%02d",p[a]);
         if(a<b)
@@ -165,45 +172,41 @@ int ip_source(const u_char *p, int a, int b)
 }
 
 int tcp_destination(const u_char *p)
-{   uint8_t buffer[2] = {p[36],p[37]};
+{   uint8_t buffer[2] = {p[2],p[3]};
     uint16_t s;
-    ntohs(buffer[0]);
-    ntohs(buffer[1]);
-    s =buffer[0] + buffer[1];
-    printf("tcp destination ip : %d\n",s);
+    s = ntohs(*buffer);
+    s = (buffer[0] << 8) + buffer[1];
+    printf("tcp destination port : %d\n",s);
     return 0;
 
 
 }
 int tcp_source(const u_char *p)
 {
-    uint8_t buffer[2]= {p[34],p[35]};
+    uint8_t buffer[2]= {p[0],p[1]};
     uint16_t s;
-    ntohs(buffer[0]);
-    ntohs(buffer[1]);
-    s =buffer[0] + buffer[1];
-    printf("tcp source ip : %d\n",s);
+    s = ntohs(*buffer);
+    s = (buffer[0]  << 8) + buffer[1];
+    printf("tcp source port : %d\n",s);
     return 0;
 }
 
 int udp_destination(const u_char *p)
 {
-    uint8_t buffer[2] = {p[36],p[37]};
+    uint8_t buffer[2] = {p[2],p[3]};
     uint16_t s;
-
-    ntohs(buffer[0]);
-    ntohs(buffer[1]);
-    s =buffer[0] + buffer[1];
-    printf("udp destination ip : %d\n",s);
+    s = ntohs(*buffer);
+    s = (buffer[0]  << 8) + buffer[1];
+    printf("udp destination port : %d\n",s);
     return 0;
                     }
 int udp_source(const u_char *p)
 {
-    uint8_t buffer[2]= {p[34], p[35]};
+    uint8_t buffer[2]= {p[0], p[1]};
     uint16_t s;
-    ntohs(buffer[0]);
-    ntohs(buffer[1]);
-    s =buffer[0] + buffer[1];
-    printf("udp source ip : %d\n",s);
+    s = ntohs(*buffer);
+    s = (buffer[0]  << 8) + buffer[1];
+    printf("udp source port : %d\n",s);
     return 0;
                     }
+
