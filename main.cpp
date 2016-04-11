@@ -172,41 +172,34 @@ int ip_source(const u_char *p, int a, int b)
 }
 
 int tcp_destination(const u_char *p)
-{   uint8_t buffer[2] = {p[2],p[3]};
-    uint16_t s;
-    s = ntohs(*buffer);
-    s = (buffer[0] << 8) + buffer[1];
-    printf("tcp destination port : %d\n",s);
+{
+    uint8_t buffer[2] = {p[2],p[3]};
+    uint16_t *s = (uint16_t*) buffer;
+    printf("tcp destination port : %d\n",ntohs(*s));
     return 0;
-
-
 }
+
 int tcp_source(const u_char *p)
 {
     uint8_t buffer[2]= {p[0],p[1]};
-    uint16_t s;
-    s = ntohs(*buffer);
-    s = (buffer[0]  << 8) + buffer[1];
-    printf("tcp source port : %d\n",s);
+    uint16_t *s = (uint16_t*) buffer;
+    printf("tcp source port : %d\n",ntohs(*s));
     return 0;
 }
 
 int udp_destination(const u_char *p)
 {
     uint8_t buffer[2] = {p[2],p[3]};
-    uint16_t s;
-    s = ntohs(*buffer);
-    s = (buffer[0]  << 8) + buffer[1];
-    printf("udp destination port : %d\n",s);
+    uint16_t *s = (uint16_t*) buffer;
+    printf("udp destination port : %d\n",ntohs(*s));
     return 0;
-                    }
+}
+
 int udp_source(const u_char *p)
 {
     uint8_t buffer[2]= {p[0], p[1]};
-    uint16_t s;
-    s = ntohs(*buffer);
-    s = (buffer[0]  << 8) + buffer[1];
-    printf("udp source port : %d\n",s);
+    uint16_t *s = (uint16_t*) buffer;
+    printf("udp source port : %d\n",ntohs(*s));
     return 0;
-                    }
+}
 
